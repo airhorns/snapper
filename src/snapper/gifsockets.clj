@@ -1,4 +1,4 @@
-(ns snapper.gifsockets.core
+(ns snapper.gifsockets
   (:import java.awt.image.BufferedImage
            java.awt.Graphics2D
            [java.io File IOException ByteArrayOutputStream]
@@ -48,7 +48,3 @@
 
 (defn get-last-frame [encoder]
   (.getFrameByteArray encoder))
-
-(defn gif-handler [conn]
-  (def client conn))
-
