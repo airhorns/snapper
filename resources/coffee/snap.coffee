@@ -20,7 +20,10 @@ else
       console.log "Unable to load the address! #{status}"
       phantom.exit()
     else
-      window.setTimeout ->
+      i = 0
+      interval = window.setInterval ->
+        if ++i > 4
+          clearInterval(interval)
+          phantom.exit()
         console.log page.renderBase64('PNG')
-        phantom.exit()
-      , 200
+      , 100

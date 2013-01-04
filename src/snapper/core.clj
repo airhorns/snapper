@@ -22,8 +22,7 @@
         (println "Snap #" i)
         (gifsockets/add-image encoder (photos/png-to-gif (photos/snap page)))
         (Thread/sleep 300))
-      (.finish encoder)
-      (println "Closing encoder")))
+      (.finish encoder)))
   (catch Exception e
     (println "Caught" (.getMessage e) "failure," (class e))
     (println (.printStackTrace e)))))
@@ -33,11 +32,7 @@
   [request]
   (println (:uri request))
   (if (= (:uri request) "/stream")
-    (let [pipe-in (ringio/piped-input-stream
-        (fn [output-stream] (
-          stream-gif((:page (:params request)), output-stream)
-        ))
-      )]
+    (let [pipe-in (ringio/piped-input-stream #(stream-gif (get (:params request) "page") %))]
       {:status 200 :headers {"Content-Type" "image/gif"} :body pipe-in})
     {:status 404 :headers {} :body ""}))
 
