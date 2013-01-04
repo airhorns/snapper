@@ -25,7 +25,7 @@
     (.setDelay e 1000)
     e))
 
-(defn add-frame [gif text w h x y]
+(defn add-text-frame [gif text w h x y]
   (.addFrame gif (write-text text w h x y)))
 
 (defn start-server [port]
@@ -40,8 +40,11 @@
 (defn add-message [encoder message]
   "adds a message positioned at (20,20) in a 300x50 gif image"
   (do
-    (add-frame encoder message 300 50 20 20)
-    (add-frame encoder message 300 50 20 20)))
+    (add-text-frame encoder message 300 50 20 20)
+    (add-text-frame encoder message 300 50 20 20)))
+
+(defn add-image [gif image]
+  (.addFrame gif image))
 
 (defn flush-encoder [encoder]
   (.outFlush encoder))
