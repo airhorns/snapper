@@ -1,7 +1,8 @@
 (ns snapper.photos
-  (:require clojure.java.shell
-            ring.util.codec
-            clojure.java.io )
+  (:require ring.util.codec
+            clojure.java.io
+            conch.sh
+            [clojure.tools.trace :as trace])
   (:import java.awt.image.BufferedImage
            java.awt.Graphics2D
            java.awt.Color
@@ -9,22 +10,38 @@
            javax.imageio.ImageIO ))
 
 (def snap-location (.getFile (clojure.java.io/resource "coffee/snap.coffee")))
+(def snaps-location (.getFile (clojure.java.io/resource "coffee/snaps.coffee")))
+(conch.sh/programs phantomjs)
 
-(defn- stupid
-  [x]
-  (get x :out))
+(defn- base64-to-png
+  "Get a PNG BufferedImage from a base64 encoded string"
+  [string]
+  (->
+    string
+    ring.util.codec/base64-decode
+    ByteArrayInputStream.
+    ImageIO/read
+    ))
 
-(defn- printit [x] (println x) x)
+
+(defn- debug
+  [in]
+  (println "here")
+  (base64-to-png in))
 
 (defn snap
   "Get a PNG photo of a url"
   [url]
-  (->
-    (clojure.java.shell/sh "phantomjs" snap-location url)
-    stupid
-    ring.util.codec/base64-decode
-    ByteArrayInputStream.
-    ImageIO/read ))
+  (let [take-out #(:out %)] (
+    ->
+    (phantomjs snap-location url)
+    take-out
+    base64-to-png)))
+
+(defn snaps
+  "Get a lazy seq of PNG photos of a url"
+  [url]
+  (map base64-to-png (phantomjs snaps-location url {:seq true})))
 
 (defn png-to-gif
   "Convert an ABGR PNG to a RGB gif image"

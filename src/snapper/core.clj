@@ -1,37 +1,31 @@
 (ns snapper.core
   "Badass webpage grabber and streamer"
   ;(:require ['snapper.gifsockets.core :as 'gifsockets] ['snapper.server :as 'server])
-  (:require [ring.adapter.jetty :as jetty]
-            [snapper.gifsockets :as gifsockets]
-            [snapper.photos     :as photos]
-            [clojure.java.io    :as io]
-            [ring.util.io       :as ringio]
+  (:require [ring.adapter.jetty  :as jetty]
+            [snapper.gifsockets  :as gifsockets]
+            [snapper.photos      :as photos]
+            [clojure.java.io     :as io]
+            [ring.util.io        :as ringio]
+            [clojure.tools.trace :as trace]
             ring.middleware.reload-modified
             ring.middleware.params
             )
   (:gen-class))
 
-(defn- printit [x] (println x) x)
-
 (defn stream-gif
   [page output-stream]
-  (try
-    (println "Snapping" page)
-    (let [encoder (gifsockets/create-gif output-stream)] (
-      (doseq [i (range 5)]
-        (println "Snap #" i)
-        (gifsockets/add-image encoder (photos/png-to-gif (photos/snap page)))
-        (Thread/sleep 300))
-      (.finish encoder)))
-  (catch Exception e
-    (println "Caught" (.getMessage e) "failure," (class e))
-    (println (.printStackTrace e)))))
+  (println "Snapping" page)
+  (let [encoder (gifsockets/create-gif output-stream)] (
+    (doseq [png (photos/snaps page)]
+      (println png)
+      (gifsockets/add-image encoder (photos/png-to-gif png)))
+    (.finish encoder))))
 
 (defn gif-handler
   "Respond with gifs"
   [request]
-  (println (:uri request))
-  (if (= (:uri request) "/stream")
+  (println request)
+  (if (= (:uri request) "/stream.gif")
     (let [pipe-in (ringio/piped-input-stream #(stream-gif (get (:params request) "page") %))]
       {:status 200 :headers {"Content-Type" "image/gif"} :body pipe-in})
     {:status 404 :headers {} :body ""}))
@@ -44,5 +38,6 @@
     {:port 8081}))
 
 (defn app
+  "Go baby go"
   [& args]
-  (-> gif-handler ring.middleware.params/wrap-params))
+  (ring.middleware.params/wrap-params #'gif-handler))

@@ -4,7 +4,8 @@
            [java.io File IOException ByteArrayOutputStream]
            javax.imageio.ImageIO
            AnimatedGifEncoder
-           java.net.ServerSocket))
+           java.net.ServerSocket)
+  (:require [clojure.tools.trace :as trace]))
 
 (defn save-to-disc [img format path]
     (ImageIO/write img format (File. path)))
