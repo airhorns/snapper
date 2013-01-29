@@ -1,6 +1,5 @@
 (ns snapper.core
   "Badass webpage grabber and streamer"
-  ;(:require ['snapper.gifsockets.core :as 'gifsockets] ['snapper.server :as 'server])
   (:require [ring.adapter.jetty  :as jetty]
             [snapper.gifsockets  :as gifsockets]
             [snapper.photos      :as photos]
@@ -32,10 +31,11 @@
 
 (defn -main
   "Go baby go"
-  [& args]
-  (jetty/run-jetty
-    (ring.middleware.params/wrap-params (ring.middleware.reload-modified/wrap-reload-modified #'gif-handler ["src"]))
-    {:port 8081}))
+  [& [port]]
+  (let [port (Integer. port)]
+    (jetty/run-jetty
+      (ring.middleware.params/wrap-params (ring.middleware.reload-modified/wrap-reload-modified #'gif-handler ["src"]))
+      {:port port})))
 
 (defn app
   "Go baby go"
